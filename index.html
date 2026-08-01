@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model İşaretleme ve Yayınlama Platformu</title>
+    
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Remix Icons (for premium, clean icons) -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <!-- Link to styles -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Import the <model-viewer> web component -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="ri-3d-glasses-line"></i>
+                    <span>skaradogan3D</span>
+                </div>
+                <p class="subtitle">3D Modeller & Blokdiyagramlar</p>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="sidebar-tabs">
+                <button class="tab-btn active" data-tab="annotations">
+                    <i class="ri-markup-line"></i> Etiketler
+                </button>
+                <button class="tab-btn" data-tab="model-settings">
+                    <i class="ri-settings-4-line"></i> Model & Ayarlar
+                </button>
+            </div>
+
+            <!-- Tab Content: Annotations -->
+            <div class="tab-content active" id="tab-annotations">
+                <div class="action-bar">
+                    <button id="btn-add-mode" class="btn btn-primary btn-full">
+                        <i class="ri-add-circle-line"></i> Etiket Ekleme Modu: KAPALI
+                    </button>
+                    <p class="hint-text"><i class="ri-information-line"></i> Modu açtıktan sonra 3D model üzerinde bir noktaya tıklayarak yeni etiket ekleyebilirsiniz.</p>
+                </div>
+
+                <div class="section-title">
+                    <span>Etiket Listesi</span>
+                    <span class="badge" id="hotspot-count">0</span>
+                </div>
+
+                <!-- Hotspots List -->
+                <div class="hotspot-list-wrapper">
+                    <div id="empty-list-view" class="empty-state">
+                        <i class="ri-bookmark-3-line"></i>
+                        <p>Henüz etiket eklenmemiş.</p>
+                    </div>
+                    <ul class="hotspot-list" id="hotspot-list">
+                        <!-- Dynamically populated -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Tab Content: Model Settings -->
+            <div class="tab-content" id="tab-model-settings">
+                <div class="settings-section">
+                    <h3>Model Değiştir</h3>
+                    <div class="file-upload-area" id="file-drop-zone">
+                        <i class="ri-upload-cloud-2-line"></i>
+                        <p>Yeni bir <strong>GLB / GLTF</strong> dosyası sürükleyin veya seçin</p>
+                        <input type="file" id="model-file-input" accept=".glb,.gltf" style="display: none;">
+                        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('model-file-input').click()">Dosya Seç</button>
+                    </div>
+                    <p class="file-info" id="loaded-file-name">Varsayılan: akşehir.glb</p>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Proje Yönetimi</h3>
+                    <div class="project-actions">
+                        <button class="btn btn-outline btn-full" id="btn-export-json">
+                            <i class="ri-download-2-line"></i> Verileri Dışa Aktar (JSON)
+                        </button>
+                        <button class="btn btn-outline btn-full" id="btn-import-trigger" onclick="document.getElementById('import-file-input').click()">
+                            <i class="ri-upload-2-line"></i> Verileri İçe Aktar (JSON)
+                        </button>
+                        <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Görünüm Ayarları</h3>
+                    <div class="setting-row">
+                        <label for="toggle-shadows">Gölgeleri Göster</label>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-shadows" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <label for="toggle-autorotate">Otomatik Döndür</label>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-autorotate">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Info -->
+            <div class="sidebar-footer">
+                <p>Sketchfab Tarzı 3D Platform &copy; 2026</p>
+            </div>
+        </aside>
+
+        <!-- Main Viewport Area -->
+        <main class="viewport-area">
+            <!-- 3D Canvas Container -->
+            <div class="canvas-container">
+                <model-viewer 
+                    id="viewer" 
+                    src="akşehir.glb" 
+                    camera-controls 
+                    touch-action="pan-y" 
+                    shadow-intensity="1" 
+                    interpolation-decay="20"
+                    alt="3D Model Viewer">
+                    
+                    <!-- Dynamic hotspots will be appended here -->
+                    
+                </model-viewer>
+                
+                <!-- Overlay message for Add Hotspot mode -->
+                <div class="viewport-overlay-message" id="add-mode-indicator">
+                    <i class="ri-map-pin-add-line"></i>
+                    <span>Model üzerinde bir noktaya tıklayarak etiketi yerleştirin</span>
+                </div>
+
+                <!-- Model loading progress bar -->
+                <div class="loading-progress-overlay" id="loading-overlay">
+                    <div class="spinner-container" id="loading-spinner">
+                        <div class="custom-spinner"></div>
+                        <span id="loading-percentage">Model Yükleniyor %0</span>
+                    </div>
+                    <div class="loading-error-card" id="loading-error" style="display: none;">
+                        <i class="ri-error-warning-line"></i>
+                        <h3 id="error-title">Model Yüklenemedi</h3>
+                        <p id="error-message">Tarayıcı güvenlik politikaları (CORS) nedeniyle model yerel dosyadan otomatik yüklenemedi.</p>
+                        <div class="error-actions">
+                            <button type="button" class="btn btn-primary btn-sm btn-full" onclick="document.getElementById('model-file-input').click()">
+                                <i class="ri-file-3-line"></i> Modeli Sistemden Seç (akşehir.glb)
+                            </button>
+                            <span class="error-hint">İpucu: serve.py veya VS Code Live Server gibi bir yerel sunucu kullanarak otomatik yüklenmesini sağlayabilirsiniz.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Floating Editor Panel -->
+            <div class="editor-panel" id="editor-panel">
+                <div class="editor-header">
+                    <h3><i class="ri-edit-line"></i> Etiket Düzenle</h3>
+                    <button class="btn-close" id="btn-editor-close"><i class="ri-close-line"></i></button>
+                </div>
+                <div class="editor-body">
+                    <form id="hotspot-form">
+                        <input type="hidden" id="edit-hotspot-id">
+                        
+                        <div class="form-group">
+                            <label for="hotspot-title">Başlık</label>
+                            <input type="text" id="hotspot-title" required placeholder="Örn: Tarihi Kapı, Kubbe Yapısı...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hotspot-description">Açıklama</label>
+                            <textarea id="hotspot-description" rows="3" placeholder="Etiket hakkında detaylı bilgi girin..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Resim Yükle</label>
+                            <div class="image-upload-wrapper">
+                                <div class="image-preview-container" id="editor-image-preview">
+                                    <i class="ri-image-add-line"></i>
+                                    <span>Görsel seçin (Opsiyonel)</span>
+                                </div>
+                                <input type="file" id="hotspot-image-input" accept="image/*" style="display: none;">
+                                <div class="image-actions">
+                                    <button type="button" class="btn btn-secondary btn-xs" onclick="document.getElementById('hotspot-image-input').click()">Resim Seç</button>
+                                    <button type="button" class="btn btn-danger btn-xs" id="btn-remove-image" style="display: none;">Kaldır</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hotspot-link">Bağlantı (URL)</label>
+                            <input type="url" id="hotspot-link" placeholder="Örn: https://wikipedia.org/wiki/Aksehir">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hotspot-link-text">Bağlantı Buton Yazısı</label>
+                            <input type="text" id="hotspot-link-text" placeholder="Örn: Daha Fazla Bilgi">
+                        </div>
+
+                        <div class="editor-actions">
+                            <button type="button" class="btn btn-danger" id="btn-delete-hotspot">Sil</button>
+                            <button type="button" class="btn btn-outline" id="btn-cancel-edit">Vazgeç</button>
+                            <button type="submit" class="btn btn-primary" id="btn-save-hotspot">Kaydet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script connection -->
+    <script src="app.js"></script>
+</body>
+</html>
